@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.arton.app.dao.UserMapper">
+    <!--CRUD 순서(생성, 읽기, 갱신, 삭제) => for Admin => for Test -->
+
+    <!--회원 생성 : 필요(UserDto)-->
+    <insert id="insert" parameterType="UserDto">
+        INSERT INTO user
+        (user_id, user_pw, user_name, user_email, birth_date, gender, user_phone, join_time, promo_chk, last_login_time, user_status)
+        VALUES
+        (#{userId}, #{userPw}, #{userName}, #{userEmail}, #{birthDate}, #{gender}, #{userPhone}, NOW(), #{promoChk}, NOW(), 1)
+    </insert>
+
+    <!--회원 읽기(회원 확인) : 필요(userId, userPw)-->
+    <select id="login" parameterType="map" resultType="UserDto">
+        <!-- 파라미터 타입 String 쓸 때는 #{value}와 같이 쓰기 -->
+        SELECT * from user where user_id = #{userId} AND user_pw = #{userPw}
+    </select>
+
+    <!--회원 읽기(일반) : 필요(userId)-->
+    <!-- 파라미터 타입 String 쓸 때는 #{value} 이용해서 쓰기 -->
+    <select id="selectUserId" parameterType="String" resultType="UserDto">
+        SELECT * from user where user_id = #{value}
+    </select>
+
+    <!--회원 읽기(일반) : 필요(userIdx)-->
+    <!-- 파라미터 타입 String 쓸 때는 #{value} 이용해서 쓰기 -->
+    <select id="selectUserIdx" parameterType="int" resultType="UserDto">
+        SELECT * from user where id = #{userIdx}
+    </select>
+
+    <!--회원 갱신(로그인시간) : 로그인 할 때마다 로그인 시간 갱신. 필요(userIdx)-->
+    <update id="updateLoginTime" parameterType="String">
+        UPDATE user
+        SET
+        last_login_time = NOW()
+        WHERE user_id = #{value}
+    </update>
+
+    <!--회원 갱신(일반) : 필요(UserDto)-->
+    <update id="update" parameterType="UserDto">
+        UPDATE user
+        SET
+            user_name = #{userName}
+            , user_email = #{userEmail}
+            , birth_date = #{birthDate}
+            , gender = #{gender}
+            , user_phone = #{userPhone}
+            , promo_chk = #{promoChk}
+            , user_status = #{userStatus}
+        WHERE user_id = #{userId} AND user_pw = #{userPw}
+    </update>
+
+
+
+    <!--회원 갱신(비밀번호) : 필요(userId, userPw, newPw)-->
+    <update id="updatePw" parameterType="map">
+        UPDATE user
+        SET
+            user_pw = #{newPw}
+        WHERE user_id = #{userId} AND user_pw = #{userPw}
+    </update>
+
+    <!--회원 삭제(탈퇴) : 필요(userId, userPw)-->
+    <delete id="withdrawal" parameterType="map">
+        DELETE FROM user WHERE user_id = #{userId} AND user_pw = #{userPw}
+    </delete>
+
+
+    <!--for Admin-->
+    <!--회원 갱신(휴면) : 로그인 1년 이상 지난 유저 휴면 상태로 갱신-->
+    <update id="adminUpdateUserStatus">
+        UPDATE user
+        SET
+            user_status = 2
+        WHERE DATE_ADD(last_login_time, INTERVAL 1 YEAR) <![CDATA[<]]> NOW()
+    </update>
+
+    <!--회원 삭제 : 필요(userId)-->
+    <delete id="adminDelete" parameterType="String">
+        DELETE FROM user WHERE user_id = #{value};
+    </delete>
+
+</mapper>

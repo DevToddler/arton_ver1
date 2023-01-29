@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.arton.app.dao.PerfMapper">
+    <!--CRUD 순서(생성, 읽기, 갱신, 삭제) => for Admin => for Test -->
+
+    <!--포트폴리오가 아닌 실제 환경에서는 다수의 쿼리문 WHERE 절에 '공연날짜가 오늘보다 이후' or '활성화된 공연'이라는 조건이 추가돼야 한다. -->
+    <!-- 공연 읽기(상세 페이지) : 상세 페이지에 필요한 모든 정보, 필요(perfId)-->
+    <!--서비스(deal, 기타다른페이지)-->
+    <select id="select" parameterType="int" resultType="PerfDto">
+        SELECT p.*
+            , (SELECT min(show_date) from perf_round where perf_id = p.id) AS perf_start
+            , (SELECT max(show_date) from perf_round where perf_id = p.id) AS perf_end
+            , (SELECT COUNT(*) FROM wishlist WHERE perf_id = p.id) AS like_cnt
+            , (SELECT ROUND(AVG(rating), 1) FROM review WHERE perf_id = p.id) AS avg_rating
+            , group_concat(concat_ws(' ', seat_class, seat_price)) AS seat_info
+        FROM perf p
+            JOIN seat s ON p.id = s.perf_id
+            AND p.id = #{perfId}
+    </select>
+
+    <!--공연 읽기(전체)-->
+    <!--서비스(x)-->
+    <select id="selectAll" resultType="PerfDto">
+        SELECT * FROM perf ORDER BY id desc
+    </select>
+
+    <!--공연 읽기(8개까지) : 지정 공연 읽기. 순서는 못 정함. 필요(perfId 8개, cate)-->
+    <!--서비스(main, cate)-->
+    <select id="selectParticulars" parameterType="map" resultType="PerfDto">
+        SELECT
+            p.*
+            , (SELECT min(show_date) from perf_round where perf_id = p.id) AS perf_start
+            , (SELECT max(show_date) from perf_round where perf_id = p.id) AS perf_end
+            , (SELECT COUNT(*) FROM wishlist WHERE perf_id = p.id) AS like_cnt
+            , (SELECT ROUND(AVG(rating), 0) FROM review WHERE perf_id = p.id) AS avg_rating
+        FROM perf p
+        WHERE true
+        <choose>
+            <when test="cate=='콘서트'">
+                AND cate = "콘서트"
+            </when>
+            <when test="cate=='뮤지컬'">
+                AND cate = "뮤지컬"
+            </when>
+            <when test="cate=='연극'">
+                AND cate = "연극"
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+            AND perf_status = 1
+            AND (
+                id = #{perfId1} OR
+                id = #{perfId2} OR
+                id = #{perfId3} OR
+                id = #{perfId4} OR
+                id = #{perfId5} OR
+                id = #{perfId6} OR
+                id = #{perfId7} OR
+                id = #{perfId8}
+                )
+            ORDER BY id
+    </select>
+
+
+
+    <!--공연 읽기(예매 랭킹) : 필요(RankingCondition)-->
+    <!--서비스(rank)-->
+    <select id="selectBookingRank" parameterType="RankingCondition" resultType="PerfDto">
+        SELECT p.*
+            , (SELECT min(show_date) from perf_round where perf_id = p.id) AS perf_start
+            , (SELECT max(show_date) from perf_round where perf_id = p.id) AS perf_end
+            , (SELECT COUNT(*) FROM wishlist WHERE perf_id = p.id) AS like_cnt
+            , (SELECT ROUND(AVG(rating), 0) FROM review WHERE perf_id = p.id) AS avg_rating
+            , (SELECT SUM(ticket_cnt) FROM booking WHERE perf_id = p.id and booking_time between STR_TO_DATE(#{bookingDateFrom}, '%Y-%m-%d %H:%i:%s') and STR_TO_DATE(#{bookingDateTo}, '%Y-%m-%d %H:%i:%s') group by perf_id) AS booking_cnt
+        FROM perf p
+        WHERE true
+        <choose>
+            <when test="rankingCate=='콘서트'">
+                AND cate = "콘서트"
+            </when>
+            <when test="rankingCate=='뮤지컬'">
+                AND cate = "뮤지컬"
+            </when>
+            <when test="rankingCate=='연극'">
+                AND cate = "연극"
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+        ORDER BY booking_cnt DESC
+        LIMIT 0, 15
+    </select>
+
+    <!--공연 읽기(찜 랭킹) : 필요(RankingCondition)-->
+    <!--서비스(main, deal)-->
+    <select id="selectLikeCntRank" parameterType="RankingCondition" resultType="PerfDto">
+        SELECT
+            *
+            , (SELECT COUNT(*) FROM wishlist WHERE perf_id = p.id) AS like_cnt
+        FROM perf p
+        WHERE true
+        <choose>
+            <when test="rankingCate=='콘서트'">
+                AND cate = "콘서트"
+            </when>
+            <when test="rankingCate=='뮤지컬'">
+                AND cate = "뮤지컬"
+            </when>
+            <when test="rankingCate=='연극'">
+                AND cate = "연극"
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+        ORDER BY like_cnt DESC
+        LIMIT 0, 15
+    </select>
+
+    <!--공연 읽기(찜 목록 5개) : 마이페이지 찜 목록. 필요(userIdx)-->
+    <!--서비스(mypage)-->
+    <select id="userLikedList" parameterType="int" resultType="PerfDto">
+        SELECT p.*
+        FROM perf p
+        JOIN wishlist w ON w.perf_id = p.id
+        AND w.user_idx = #{userIdx}
+        ORDER BY w.id DESC
+        LIMIT 0, 5
+    </select>
+
+    <!--공연 랜덤 읽기-->
+    <select id="selectRandom" parameterType="int" resultType="PerfDto">
+        SELECT
+            p.*
+            , (SELECT min(show_date) from perf_round where perf_id = p.id) AS perf_start
+            , (SELECT max(show_date) from perf_round where perf_id = p.id) AS perf_end
+            , (SELECT COUNT(*) FROM wishlist WHERE perf_id = p.id) AS like_cnt
+            , (SELECT ROUND(AVG(rating), 0) FROM review WHERE perf_id = p.id) AS avg_rating
+        FROM perf p
+        WHERE true
+        <choose>
+            <when test="cateCode==1">
+                AND cate = "콘서트"
+            </when>
+            <when test="cateCode==2">
+                AND cate = "뮤지컬"
+            </when>
+            <when test="cateCode==3">
+                AND cate = "연극"
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+        AND perf_status = 1
+        ORDER BY RAND()
+        LIMIT 10
+    </select>
+
+    
+    <!--count show_date_idx-->
+    <select id="countDateIdx" parameterType="int" resultType="int">
+        SELECT COUNT(DISTINCT show_date_idx) FROM view_seat_invt WHERE perf_id = #{perfId};
+    </select>
+    
+    
+    <!--뷰에서 따오기-->
+    <!--필요(perfId, idx)-->
+    <select id="selectView" parameterType="map" resultType="ViewSeatInvtDto">
+        SELECT *
+        FROM view_seat_invt
+        WHERE perf_id = #{perfId}
+        AND show_date_idx = #{idx}
+        ORDER BY seat_invt_id
+    </select>
+
+    <!--sdlafkh-->
+    <select id="selectShowTime" parameterType="int" resultType="ViewSeatInvtDto">
+        SELECT distinct show_time
+        FROM view_seat_invt
+        WHERE perf_id = #{perfId}
+        ORDER BY seat_invt_id
+    </select>
+
+
+    <!--관리자 권한-->
+    <!--공연 생성 : 필요(PerfDto)-->
+    <!--<insert id="adminInsert" parameterType="PerfDto">-->
+    <!--    INSERT INTO perf-->
+    <!--    (cate, perf_name, poster_path, poster_path_db, content_rating, running_time, cast, agency, hotline, location, location_addr, discount_rate, perf_status)-->
+    <!--    VALUES-->
+    <!--    (#{cate}, #{perf_name}, #{poster_path}, #{poster_path_db}, #{content_rating}, #{running_time}, #{cast}, #{agency}, #{hotline}, #{location}, #{location_addr}, #{discount_rate}, #{perf_status})-->
+    <!--</insert>-->
+
+    <!--&lt;!&ndash;공연 갱신 : 필요(PerfDto)&ndash;&gt;-->
+    <!--<update id="adminUpdate" parameterType="PerfDto">-->
+    <!--    UPDATE perf-->
+    <!--    SET-->
+    <!--        cate = #{cate}-->
+    <!--        , perf_name = #{perfName}-->
+    <!--        , poster_path = #{posterPath}-->
+    <!--        , poster_path_db = #{posterPathDb}-->
+    <!--        , content_rating = #{contentRating}-->
+    <!--        , running_time = #{runningTime}-->
+    <!--        , cast = #{cast}-->
+    <!--        , agency = #{agency}-->
+    <!--        , hotline = #{hotline}-->
+    <!--        , location = #{location}-->
+    <!--        , location_addr = #{locationAddr}-->
+    <!--        , discount_rate = #{discountRate}-->
+    <!--        , perf_status = #{perfStatus}-->
+    <!--    WHERE id = #{id}-->
+    <!--</update>-->
+
+    <!--&lt;!&ndash;공연 삭제 : 필요(id)&ndash;&gt;-->
+    <!--<delete id="adminDelete" parameterType="int">-->
+    <!--    DELETE FROM perf WHERE id = #{id}-->
+    <!--</delete>-->
+
+
+
+</mapper>

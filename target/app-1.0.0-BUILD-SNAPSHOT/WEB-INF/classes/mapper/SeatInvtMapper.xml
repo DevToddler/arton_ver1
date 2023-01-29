@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.arton.app.dao.SeatInvtMapper">
+    <!--CRUD 순서(생성, 읽기, 갱신, 삭제) => for Admin => for Test -->
+
+    <!--좌석수 읽기(한개) : 필요(seatInvtId) -->
+    <select id="select" parameterType="int" resultType="SeatInvtDto">
+        SELECT *
+        FROM seat_invt
+        WHERE id = #{seatInvtId}
+    </select>
+
+    <!--좌석수 읽기(상세 페이지) : 공연회차에 맞는 좌석list 읽기. 필요(perfRoundId) -->
+    <select id="selectList" parameterType="int" resultType="SeatInvtDto">
+        SELECT *
+        FROM seat_invt
+        WHERE perf_round_id = #{perfRoundId}
+    </select>
+
+    <!--좌석수 갱신(감소) : 예매 시 티켓 개수만큼 좌석수 감소. 필요(seatInvtId, ticketCnt)-->
+    <!--예매는 한번에 9장 이하만 가능-->
+    <!--주의!!!! 리턴값을 무조건 확인하기! 재고가 구매할 수량보다 적은경우 쿼리문 실행되지만 리턴이 0임!!!-->
+    <!--좌석수 차감-->
+    <update id="bookingSeat" parameterType="map">
+        UPDATE seat_invt
+        SET
+            seat_stock = seat_stock-#{ticketCnt}
+        WHERE #{ticketCnt} <![CDATA[<=]]> 9
+            AND id = #{seatInvtId}
+            AND seat_stock - #{ticketCnt} <![CDATA[>=]]> 0
+    </update>
+
+    <!--좌석수 갱신(증가) : 예매취소 시 티켓 취소개수만큼 좌석수 증가. 필요(seatInvtId, ticketCnt)-->
+    <update id="cancelSeat" parameterType="map">
+        UPDATE seat_invt
+        SET
+            seat_stock = seat_stock + #{ticketCnt}
+        WHERE id = #{seatInvtId}
+    </update>
+
+
+    <!--관리자권한 -->
+    <!--잔여좌석 등록 -->
+    <!--<insert id="insert" parameterType="SeatInvtDto">-->
+    <!--    INSERT INTO seat_invt-->
+    <!--    (perf_round_id, perf_id, seat_id, seat_init, seat_stock)-->
+    <!--    VALUES-->
+    <!--    (#{perf_round_id}, #{perf_id}, #{seat_id}, #{seat_init}, #{seat_stock});-->
+    <!--</insert>-->
+
+    <!--잔여좌석 삭제 -->
+    <!--<delete id="delete" parameterType="SeatInvtDto">-->
+    <!--    DELETE FROM seat_invt WHERE id = #{id};-->
+    <!--</delete>-->
+
+</mapper>

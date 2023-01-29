@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.arton.app.dao.WishlistMapper">
+
+    <!--CRUD 순서(생성, 읽기, 갱신, 삭제) => for Admin => for Test -->
+
+    <!-- 찜 생성 : 필요(userIdx, perfId)-->
+    <insert id="insert" parameterType="map">
+        INSERT INTO wishlist
+        (user_idx, perf_id, liked)
+        VALUES (#{userIdx}, #{perfId}, 1)
+    </insert>
+
+    <!-- 찜 읽기(한개) : 로그인한 유저가 해당 공연 찜 했는지 체크, 필요(userIdx, perfId)-->
+    <select id="select" parameterType="map" resultType="WishlistDto">
+        SELECT * FROM wishlist
+        WHERE user_idx = #{userIdx} AND perf_id = #{perfId}
+    </select>
+
+
+    <!--필요없는듯?-->
+    <!--찜 읽기(all)-->
+    <!--<select id="selectAll" parameterType="" resultType="">-->
+    <!--    SELECT * FROM wishlist-->
+    <!--    WHERE user_idx = #{userIdx}-->
+    <!--    ORDER BY #{id} desc-->
+    <!--</select>-->
+
+    <!-- 찜 개수 : 특정 공연의 찜 개수, 필요(perfId)-->
+    <select id="count" parameterType="int" resultType="int">
+        SELECT count(*)
+        FROM wishlist
+        WHERE perf_id = #{perfId}
+    </select>
+
+    <!-- 찜 삭제 : 찜 갱신=찜에서 삭제, 필요(userIdx, perfId) -->
+    <delete id="delete" parameterType="map">
+        DELETE FROM wishlist
+        WHERE user_idx = #{userIdx} AND perf_id = #{perfId}
+    </delete>
+
+    <!--for Admin-->
+    <!--찜 삭제(invalid) : 계정상태가 정지(user_status=3)인 찜 모두 삭제-->
+    <!---->
+    <!--쿼리 잘 되는지 확인 필요-->
+    <!---->
+    <delete id="deleteInvalid">
+        DELETE FROM wishlist WHERE user_idx = (SELECT idx FROM user WHERE user_status = 3)
+    </delete>
+
+    <!--for Test-->
+    <!--찜 삭제(all)-->
+    <delete id="deleteAll">
+        DELETE FROM wishlist
+    </delete>
+
+</mapper>

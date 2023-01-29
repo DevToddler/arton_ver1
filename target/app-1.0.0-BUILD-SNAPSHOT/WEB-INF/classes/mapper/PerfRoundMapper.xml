@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.arton.app.dao.PerfRoundMapper">
+    <!--CRUD 순서(생성, 읽기, 갱신, 삭제) => for Admin => for Test -->
+
+    <!--공연회차 읽기 : 특정 공연의 공연회차 읽기, 필요(perfId)-->
+    <select id="selectAll" parameterType="int" resultType="PerfRoundDto">
+        SELECT *
+        FROM perf_round
+        WHERE perf_id = #{perfId}
+    </select>
+
+
+    <!--for Admin-->
+    <!--공연회차 생성 : 필요(PerfRoundDto)-->
+    <insert id="adminInsert" parameterType="PerfRoundDto">
+        INSERT INTO perf_round
+        (perf_id, show_date, show_time)
+        VALUES
+        (#{perfId}, #{showDate}, #{showTime})
+    </insert>
+
+    <!--공연회차 갱신-->
+    <update id="adminUpdate" parameterType="PerfRoundDto">
+        UPDATE perf_round
+        SET
+            perf_id = #{perfId}
+            , show_date = #{showDate}
+            , show_time = #{showTime}
+        WHERE id = #{id}
+    </update>
+
+    <!--공연회차 삭제 : 특정 공연의 모든 공연회차 삭제, 필요(perfId)-->
+    <delete id="adminDelete" parameterType="int">
+        DELETE FROM perf_round WHERE perf_id = #{perfId}
+    </delete>
+
+</mapper>

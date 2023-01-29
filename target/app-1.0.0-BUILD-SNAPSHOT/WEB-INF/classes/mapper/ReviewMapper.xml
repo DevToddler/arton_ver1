@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.arton.app.dao.ReviewMapper">
+
+    <!--리뷰 생성 : 필요(ReviewDto)-->
+    <insert id="insert" parameterType="ReviewDto">
+        INSERT INTO review
+        (user_idx, perf_id, rv_content, rating, rv_modi_time)
+        VALUES
+        (#{userIdx}, #{perfId}, #{rvContent}, #{rating}, NOW())
+    </insert>
+
+    <!--리뷰 읽기(한개) : 필요(userIdx, perfId)-->
+    <select id="select" parameterType="map" resultType="ReviewDto">
+        SELECT *
+        FROM review
+        WHERE user_idx = #{userIdx} AND perf_id = #{perfId}
+    </select>
+
+    <!--페이지네이션 필요 : 이 부분 나중에 테스트-->
+    <!--리뷰 읽기(all) : 특정 공연의 리뷰 전체, 필요(perfId)-->
+    <select id="selectAll" parameterType="int" resultType="ReviewDto">
+        SELECT *
+        FROM review
+        WHERE perf_id = #{perfId}
+        ORDER BY id DESC
+    </select>
+
+    <!--리뷰 개수 : 특정 공연의 리뷰 개수, 필요(perfId)-->
+    <select id="count" parameterType="int" resultType="int">
+        SELECT count(*) FROM review WHERE perf_id = #{perfId}
+    </select>
+
+    <!--리뷰 갱신 : 필요(ReviewDto)-->
+    <update id="update" parameterType="ReviewDto">
+        UPDATE review
+        SET
+            rv_content = #{rvContent}
+            , rating = #{rating}
+            , rv_modi_time = NOW()
+        WHERE id = #{id} and user_idx = #{userIdx}
+    </update>
+
+    <!--리뷰 삭제 : 작성자만 삭제 가능, 필요(reviewId, userIdx)-->
+    <delete id="delete" parameterType="map">
+        DELETE FROM review WHERE id = #{reviewId} AND user_idx = #{userIdx}
+    </delete>
+
+
+    <!--for Test-->
+    <!--리뷰 전체 삭제-->
+    <delete id="deleteAll">
+        DELETE FROM review
+    </delete>
+</mapper>

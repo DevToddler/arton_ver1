@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+<!--        <setting name="callSettersOnNulls" value="true"/>-->
+<!--        <setting name="jdbcTypeForNull" value="NULL"/>-->
+    </settings>
+
+    <typeAliases>
+        <!-- 아직 BoardDto 안만들거니까 잠시 주석 처리하기 -->
+        <!-- 여기는 별칭 정하는곳  boardMapper 에 resultType="BoardDto" 임  -->
+        <!--Dto 매퍼-->
+        <typeAlias alias="BookingDto" type="com.arton.app.domain.BookingDto"/>
+
+        <typeAlias alias="PerfDetailDto" type="com.arton.app.domain.PerfDetailDto"/>
+
+        <typeAlias alias="PerfDto" type="com.arton.app.domain.PerfDto"/>
+
+        <typeAlias alias="PerfRoundDto" type="com.arton.app.domain.PerfRoundDto"/>
+
+        <typeAlias alias="ReviewDto" type="com.arton.app.domain.ReviewDto"/>
+
+        <typeAlias alias="SeatDto" type="com.arton.app.domain.SeatDto"/>
+
+        <typeAlias alias="SeatInvtDto" type="com.arton.app.domain.SeatInvtDto"/>
+
+        <typeAlias alias="UserDto" type="com.arton.app.domain.UserDto"/>
+
+        <typeAlias alias="WishlistDto" type="com.arton.app.domain.WishlistDto"/>
+
+        <typeAlias alias="ViewSeatInvtDto" type="com.arton.app.domain.ViewSeatInvtDto"/>
+
+        <!--기타 매퍼-->
+        <typeAlias alias="RankingCondition" type="com.arton.app.domain.RankingCondition"/>
+
+    </typeAliases>
+</configuration>

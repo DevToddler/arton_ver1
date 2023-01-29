@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.arton.app.dao.PerfDetailMapper">
+    <!--CRUD 순서(생성, 읽기, 갱신, 삭제) => for Admin => for Test -->
+
+    <!--공연상세 읽기 : 특정 공연의 모든 공연상세, 필요(perfId)-->
+    <!--서비스(deal)-->
+    <select id="selectAll" parameterType="int" resultType="PerfDetailDto">
+        SELECT *
+        FROM perf_detail
+        WHERE perf_id = #{perfId}
+        ORDER BY detail_index
+    </select>
+
+
+    <!--for Admin-->
+    <!--공연상세 생성 : 필요(PerfDetailDto)-->
+    <insert id="adminInsert" parameterType="PerfDetailDto">
+        INSERT INTO perf_detail
+        (perf_id, detail_index, detail_path, detail_path_db)
+        VALUES
+        (#{perfId}, #{detailIndex}, #{detailPath}, #{detailPathDb})
+    </insert>
+
+    <!--공연상세 갱신 : 필요(PerfDetailDto)-->
+    <update id="adminUpdate" parameterType="PerfDetailDto">
+        UPDATE perf_detail
+        SET
+            perf_id = #{perfId}
+            , detail_index = #{detailIndex}
+            , detail_path = #{detailPath}
+            , detail_path_db = #{detailPathDb}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 공연상세 삭제 : 특정 공연의 공연상세 한번에 삭제, 필요(perfId)-->
+    <delete id="adminDelete" parameterType="int">
+        DELETE FROM perf_detail WHERE perf_id = #{perfId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.arton.app.dao.SeatMapper">
+    <!--CRUD 순서(생성, 읽기, 갱신, 삭제) => for Admin => for Test -->
+
+    <!--좌석 읽기(전체) : 특정 공연의 좌석 전체, 필요(perfId)-->
+    <select id="selectAll" parameterType="int" resultType="SeatDto">
+        SELECT *
+        FROM seat
+        WHERE perf_id = #{perfId}
+    </select>
+
+
+    <!--for Admin-->
+    <!--좌석 생성 : 필요(SeatDto)-->
+    <insert id="adminInsert" parameterType="SeatDto">
+        INSERT INTO seat
+        (perf_id, seat_class, seat_price)
+        VALUES
+        (#{perfId}, #{seatClass}, #{seatPrice})
+    </insert>
+
+    <!--좌석 갱신 : 필요(SeatDto)-->
+    <update id="adminUpdate" parameterType="SeatDto">
+        UPDATE seat
+        SET
+            perf_id = #{perfId}
+            , seat_class = #{seatClass}
+            , seat_price = #{seatPrice}
+        WHERE id = #{id}
+    </update>
+
+    <!--좌석 삭제 : 특정공연의 전체 좌석 삭제, 필요(perfId)-->
+    <delete id="adminDelete" parameterType="int">
+        DELETE FROM seat WHERE perf_id = #{perfId}
+    </delete>
+
+</mapper>
